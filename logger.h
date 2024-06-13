@@ -2,7 +2,7 @@
 #include <iostream>
 
 namespace logger {
-#if __cplusplus >= 201703L
+#if _MSVC_LANG >= 201703L
 	template<typename...Args>
 	void logger(Args... args) {
 		//cpp17ÕÛµþ±í´ïÊ½

@@ -18,19 +18,23 @@ public:
 	hstring(const char* str);
 	~hstring();
 	
-	hstring& operator+(const hstring& str);
+	friend std::ostream& operator<<(std::ostream& _cout, hstring& str);
+	hstring& operator+(const hstring& str);//"123" + "abc" == "123abc"
+	hstring& operator-(const hstring& str);//"12345" - "34" == "125"
+	const char& operator[](int index) const;//str[1] == "2"
 public:
 	size_t length;//hstring字符串的长度，不含结尾'\0'
-	char* hstring_start;//hstring字符开始的位置，结尾为'\0'
-
+	int find(const hstring& str) const;//hstring中查找hstring，成功返回位置，失败返回-1
+	hstring& replace(const hstring& src, const hstring& dst);//"1234" 34->abc == "12abc"
 private:
-	bool initMempool(size_t size);//分配size大小的内存
+	bool initMemory(size_t size);//分配size大小的内存
 	void init();//初始化hstring
 	void int2hstring(int num);
 	void cstr2hstring(const char* str);
 private:
 	char* memory;//指向缓存区的开始位置
 	size_t mem_size;//缓存区的大小
+	char* hstring_start;//hstring字符开始的位置，结尾为'\0'
 
 };
 

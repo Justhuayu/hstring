@@ -3,8 +3,17 @@
 
 //#include "logger.h"
 int main() {
-	std::cout << __cplusplus << std::endl;
-	hstring str("asd");
+	hstring str(9876);
+	hstring str1(1111);
+	hstring str3(2222);
+
+	str = str + str1;
 	std::cout << str << std::endl;
-	std::cout << str.length << std::endl;
+	str = str + str3;
+	std::cout << str << std::endl;
+	hstring str4(1234567);
+	std::cout << str4.replace("23", "") << std::endl;
+	hstring str5 = str4 - "1";
+	std::cout << str5.length << std::endl;
+	//TODO£ºÎö¹¹±¨´í£¿
 }
