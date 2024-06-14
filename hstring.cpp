@@ -2,6 +2,12 @@
 #include "logger.h"
 #define MEMORY_SIZE 3
 
+hstring::hstring() {
+	length = 0;
+	memory = nullptr;
+	hstring_start = nullptr;
+	mem_size = 0;
+}
 hstring::hstring(int num) {
 	init();
 	int2hstring(num);
@@ -15,6 +21,11 @@ hstring::hstring(const char* str)
 {
 	init();
 	cstr2hstring(str);
+}
+hstring::hstring(const hstring& str)
+{
+	//=运算符重构过，直接使用
+	*this = str;
 }
 hstring::~hstring() {
 	free(memory);
@@ -221,3 +232,32 @@ const char& hstring::operator[](int index) const
 	return *(this->hstring_start + index);
 }
 
+hstring& hstring::operator=(const hstring& str)
+{
+	
+	hstring_start = str.hstring_start;
+	if (str.length + 1 > mem_size) {
+		free(memory);
+		int resize = (str.mem_size + MEMORY_SIZE - 1) / MEMORY_SIZE;
+		initMemory(resize*MEMORY_SIZE);
+	}
+	memcpy(memory, str.hstring_start, str.length + 1);
+	hstring_start = memory;
+	length = str.length;
+	return *this;
+	// TODO: 如果是浅拷贝，将memory设为shared指针，这里用weak指针
+}
+
+hstring& hstring::operator=(int num)
+{
+	if (memory == nullptr) {
+		init();
+	}
+	else {
+		length = 0;
+		memset(memory, 0, mem_size);
+		hstring_start = memory;
+	}
+	int2hstring(num);
+	return *this;
+}
