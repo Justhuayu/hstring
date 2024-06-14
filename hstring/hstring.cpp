@@ -1,6 +1,5 @@
 #include "hstring.h"
-#include "logger.h"
-#define MEMORY_SIZE 3
+#include <iostream>
 
 hstring::hstring() {
 	length = 0;
@@ -28,31 +27,30 @@ hstring::hstring(const hstring& str)
 	*this = str;
 }
 hstring::~hstring() {
-	free(memory);
+	freeHstring(memory);
 }
 
-
 void hstring::int2hstring(int num) {
-	hstring_start = memory + mem_size - 1 ;
+
+	//计算当前分配的内存大小，够不够放下num
+	int width = mem_pool.mem_block_size;
+	int tmp = num;
+	int num_length = 1;
+	while (tmp > 0) {
+		tmp /=  10;
+		num_length++;
+	}
+	if (num_length > width) {
+		allocBigMemory(num_length);
+	}
+	hstring_start = memory + mem_size - 1;
 	*hstring_start = '\0';
-	int tmp;
 	while(num>0){
 		tmp = num % 10;
 		length++;
-		if (length >= mem_size) {
-			char* old_memory = memory;
-			//内存大小不够，重新分配
- 			initMemory(mem_size+MEMORY_SIZE);
-			//将已经初始化的部分，copy到新内存的末尾
-			char* tmp = memory + mem_size - length;
-			memcpy(tmp, hstring_start, length);
-			hstring_start = tmp;
-			free(old_memory);
-		}
 		hstring_start--;
 		*hstring_start = tmp + '0';
 		num /= 10;
-
 	}
 }
 void hstring::cstr2hstring(const char* str)
@@ -63,52 +61,59 @@ void hstring::cstr2hstring(const char* str)
 		length++;
 	}
 	if (length >= mem_size) {
-		char* old_memory = memory;
-		size_t resize = (length + MEMORY_SIZE) / MEMORY_SIZE;
-		initMemory(resize * MEMORY_SIZE);
-		free(old_memory);
+		freeHstring(memory);
+		allocBigMemory(length + 1);
 	}
 	memcpy(memory, str, length);
 	*(memory + length) = '\0';
 	hstring_start = memory;
 }
 void hstring::init() {
-	initMemory(MEMORY_SIZE);
+	initMemory();
 	length = 0;
 }
-bool hstring::initMemory(size_t size)
-{
-	mem_size = size;
-	if (size <= 0)
-	{
-		logger::logger("ERROR:","内存分配失败, size<=0");
-		return false;
+void hstring::freeHstring(void* ptr) {
+	if (is_use_mempool) {
+		mem_pool.freeMemory(ptr);
 	}
+	else {
+		free(ptr);
+	}
+}
+void hstring::allocBigMemory(size_t size) {
 	memory = (char*)malloc(size);
 	if (!memory) {
-		logger::logger("ERROR:", "内存分配失败, memory == nullptr");
-		return false;
+		std::cout << "ERROR: 内存分配失败" << std::endl;
+		return;
 	}
 	memset(memory, 0, size);
+	mem_size = size;
+	is_use_mempool = false;
+}
+bool hstring::initMemory()
+{
+	mem_size = mem_pool.mem_block_size;
+	memory = mem_pool.allocMemory();
+	is_use_mempool = true;
 	return true;
 }
 
 //KMP算法实现字符串匹配
 int hstring::find(const hstring& str) const {
 	if (this->length < str.length || str.length <= 0) {
-		logger::logger("INFO:", "字符串中没有找到子串", str);
+		std::cout << "INFO: 字符串中没有找到子串,"<< std::endl;;
 		return -1;
 	}
 	//1. 获取next数组
 	int* next = (int*)malloc(str.length*sizeof(int));
 	if (!next) {
-		//logger::logger("ERROR:", "KMP算法分配next数组空间失败，next==nullptr");
+		std::cout << "ERROR: KMP算法分配next数组空间失败，next==nullptr" << std::endl;
 		return -1;
 	}
 	memset(next, 0, str.length);
 	size_t j = 0;
 	next[0] = 0;
-	for (int i = 1; i < str.length; i++) {
+	for (size_t i = 1; i < str.length; i++) {
 		while (j > 0 && str[i] != str[j]) {
 			j = next[j];
 		}
@@ -119,7 +124,7 @@ int hstring::find(const hstring& str) const {
 	}
 	//2. kmp匹配
 	j = 0;
-	for (int i = 0; i < this->length; i++) {
+	for (size_t i = 0; i < this->length; i++) {
 		while (j > 0 && (*this)[i] != str[j]) {
 			j = next[j - 1];
 		}
@@ -134,6 +139,7 @@ int hstring::find(const hstring& str) const {
 	free(next);
 	//TODO:logger打印hstring报错
 	//logger::logger("INFO:", "字符串中没有找到子串", str);
+	std::cout<< "INFO: 字符串中没有找到子串" << std::endl;
 	return -1;
 }
 hstring& hstring::replace(const hstring& src, const hstring& dst) {
@@ -145,9 +151,8 @@ hstring& hstring::replace(const hstring& src, const hstring& dst) {
 	//剩余空间不够，需要扩容
 	if (this->length + inc_size >= mem_size) {
 		//this->length + str.length + 1 + MEMORY_SIZE - 1
-		size_t resize = (this->length + inc_size + MEMORY_SIZE) / MEMORY_SIZE;
 		char* old_memory = memory;
-		initMemory(resize * MEMORY_SIZE);
+		allocBigMemory(this->length + inc_size + 1);
 		//分别copy src前、dst、src后
 		memcpy(memory, hstring_start, index);
 		memcpy(memory + index, dst.hstring_start, dst.length);
@@ -159,7 +164,7 @@ hstring& hstring::replace(const hstring& src, const hstring& dst) {
 		}
 		*(memory + this->length + inc_size) = '\0';
 		hstring_start = memory;
-		free(old_memory);
+		freeHstring(old_memory);
 		this->length += inc_size;
 		return *this;
 	}
@@ -192,18 +197,17 @@ std::ostream& operator<<(std::ostream& _cout, hstring& str) {
 hstring& hstring::operator+(const hstring& str)
 {
 	//this后空间能否直接拼接str
-	int res_size = memory + mem_size - hstring_start - length - 1;
+	size_t res_size = memory + mem_size - hstring_start - length - 1;
 	if (res_size < str.length) {
 		//this空间长度不够str
 		if (this->length + str.length >= mem_size) {
 			//this+str 大于当前memory长度，扩容
 			//this->length + str.length + 1 + MEMORY_SIZE - 1
-			size_t resize = (this->length + str.length + MEMORY_SIZE) / MEMORY_SIZE;
 			char* old_memory = memory;
-			initMemory(resize * MEMORY_SIZE);
-			memcpy(memory, hstring_start, length + 1);
+			allocBigMemory(this->length + str.length + 1);
+			memcpy(memory, hstring_start, length);
 			hstring_start = memory;
-			free(old_memory);
+			freeHstring(old_memory);
 		}
 		else {
 			//this+str 小于memory长度，只是存在内存浪费
@@ -223,23 +227,21 @@ hstring& hstring::operator-(const hstring& str) {
 	return *this;
 }
 
-const char& hstring::operator[](int index) const
+const char& hstring::operator[](size_t index) const
 {
 	if (index >= this->length) {
-		logger::logger("ERROR:", "数组越界");
+		std::cout << "ERROR: 数组越界" << std::endl;
+		//TODO: 越界返回什么
 		return '*';
 	}
 	return *(this->hstring_start + index);
 }
 
 hstring& hstring::operator=(const hstring& str)
-{
-	
-	hstring_start = str.hstring_start;
+{	
 	if (str.length + 1 > mem_size) {
-		free(memory);
-		int resize = (str.mem_size + MEMORY_SIZE - 1) / MEMORY_SIZE;
-		initMemory(resize*MEMORY_SIZE);
+		freeHstring(memory);
+		allocBigMemory(str.mem_size);
 	}
 	memcpy(memory, str.hstring_start, str.length + 1);
 	hstring_start = memory;

@@ -27,20 +27,23 @@ public:
 	hstring& operator-(const hstring& str);//"12345" - "34" == "125"
 	hstring& operator=(const hstring& str);//str=str1;
 	hstring& operator=(int num);//str = 123;
-	const char& operator[](int index) const;//str[1] == "2"
+	const char& operator[](size_t index) const;//str[1] == "2"
 private:
-	bool initMemory(size_t size);//分配size大小的内存
+	bool initMemory();//从mempool分配一个block
 	void init();//初始化hstring
 	void int2hstring(int num);
 	void cstr2hstring(const char* str);
-
+	void allocBigMemory(size_t size);//分配size大小的内存，用于mempool的block太小的情况
+	void freeHstring(void* ptr);
 public:
 	size_t length;//hstring字符串的长度，不含结尾'\0'
 private:
 	char* memory;//指向缓存区的开始位置
 	size_t mem_size;//缓存区的大小
 	char* hstring_start;//hstring字符开始的位置，结尾为'\0'
-
+	bool is_use_mempool;//当前字符串，是否使用mempool分配的内存
+public:
+	static mempool mem_pool;
 };
 
 std::ostream& operator<<(std::ostream& _cout, hstring& str);

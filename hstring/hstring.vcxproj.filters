@@ -15,18 +15,24 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\hstring.h">
+    <ClInclude Include="mempool.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\logger.h">
+    <ClInclude Include="hstring.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="logger.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\hstring.cpp">
+    <ClCompile Include="mempool.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\main.cpp">
+    <ClCompile Include="hstring.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

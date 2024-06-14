@@ -188,12 +188,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\hstring.h" />
-    <ClInclude Include="..\logger.h" />
+    <ClInclude Include="hstring.h" />
+    <ClInclude Include="logger.h" />
+    <ClInclude Include="mempool.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\hstring.cpp" />
-    <ClCompile Include="..\main.cpp" />
+    <ClCompile Include="hstring.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="mempool.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />
