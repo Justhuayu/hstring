@@ -13,7 +13,8 @@ int main() {
 	std::cout << str << std::endl;
 	hstring str4(1234567);
 	std::cout << str4.replace("23", "") << std::endl;
-	hstring str5 = str4 - "1";
-	std::cout << str5.length << std::endl;
+	hstring str5(123);
+	str5 = str5 - "1";
+	std::cout << str5 << std::endl;
 	//TODO£ºÎö¹¹±¨´í£¿
 }
