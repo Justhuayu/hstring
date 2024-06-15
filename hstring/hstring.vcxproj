@@ -193,8 +193,8 @@
     <ClInclude Include="mempool.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\main.cpp" />
     <ClCompile Include="hstring.cpp" />
-    <ClCompile Include="main.cpp" />
     <ClCompile Include="mempool.cpp" />
   </ItemGroup>
   <ItemGroup>
