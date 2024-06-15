@@ -100,7 +100,6 @@ bool mempool::increaseMempool(size_t size) {
 	return true;
 }
 void mempool::destoryMempool() {
-	//TODO£ºÏú»Ùmempool±¨´í
 	for (char* item : mempool_release) {
 		free(item);
 		item = nullptr;

@@ -159,7 +159,6 @@ hstring& hstring::replace(const hstring& src, const hstring& dst) {
 	int inc_size = dst.length - src.length;
 	//剩余空间不够，需要扩容
 	if (this->length + inc_size >= mem_size) {
-		//this->length + str.length + 1 + MEMORY_SIZE - 1
 		char* old_memory = memory;
 		bool use_flag = is_use_mempool;
 		allocBigMemory(this->length + inc_size + 1);
@@ -254,6 +253,7 @@ hstring& hstring::operator=(const hstring& str)
 		freeHstring(memory,is_use_mempool);
 		allocBigMemory(str.mem_size);
 	}
+	memset(memory, 0, mem_size);
 	memcpy(memory, str.hstring_start, str.length + 1);
 	hstring_start = memory;
 	length = str.length;
