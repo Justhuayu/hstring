@@ -12,10 +12,7 @@ hstring::hstring(int num) {
 	int2hstring(num);
 
 }
-hstring::hstring(float str) {
-	init();
 
-}
 hstring::hstring(const char* str)
 {
 	init();
@@ -27,15 +24,21 @@ hstring::hstring(const hstring& str)
 	*this = str;
 }
 hstring::~hstring() {
-	freeHstring(memory);
+	freeHstring(memory,is_use_mempool);
 }
 
 void hstring::int2hstring(int num) {
-
+	//num == 0，默认什么也没有
+	//处理num为负数情况
+	bool negative = false;
+	if (num < 0) {
+		num *= -1;
+		negative = true;
+	}
 	//计算当前分配的内存大小，够不够放下num
 	int width = mem_pool.mem_block_size;
 	int tmp = num;
-	int num_length = 1;
+	int num_length = negative?2:1;
 	while (tmp > 0) {
 		tmp /=  10;
 		num_length++;
@@ -52,6 +55,12 @@ void hstring::int2hstring(int num) {
 		*hstring_start = tmp + '0';
 		num /= 10;
 	}
+	//负号
+	if (negative) {
+		length++;
+		hstring_start--;
+		*hstring_start = '-';
+	}
 }
 void hstring::cstr2hstring(const char* str)
 {
@@ -60,8 +69,8 @@ void hstring::cstr2hstring(const char* str)
 		tmp++;
 		length++;
 	}
-	if (length >= mem_size) {
-		freeHstring(memory);
+	if (length+1 > mem_size) {
+		freeHstring(memory,is_use_mempool);
 		allocBigMemory(length + 1);
 	}
 	memcpy(memory, str, length);
@@ -72,8 +81,8 @@ void hstring::init() {
 	initMemory();
 	length = 0;
 }
-void hstring::freeHstring(void* ptr) {
-	if (is_use_mempool) {
+void hstring::freeHstring(void* ptr,bool _is_use_mempool) {
+	if (_is_use_mempool) {
 		mem_pool.freeMemory(ptr);
 	}
 	else {
@@ -152,6 +161,7 @@ hstring& hstring::replace(const hstring& src, const hstring& dst) {
 	if (this->length + inc_size >= mem_size) {
 		//this->length + str.length + 1 + MEMORY_SIZE - 1
 		char* old_memory = memory;
+		bool use_flag = is_use_mempool;
 		allocBigMemory(this->length + inc_size + 1);
 		//分别copy src前、dst、src后
 		memcpy(memory, hstring_start, index);
@@ -164,7 +174,7 @@ hstring& hstring::replace(const hstring& src, const hstring& dst) {
 		}
 		*(memory + this->length + inc_size) = '\0';
 		hstring_start = memory;
-		freeHstring(old_memory);
+		freeHstring(old_memory, use_flag);
 		this->length += inc_size;
 		return *this;
 	}
@@ -204,10 +214,11 @@ hstring& hstring::operator+(const hstring& str)
 			//this+str 大于当前memory长度，扩容
 			//this->length + str.length + 1 + MEMORY_SIZE - 1
 			char* old_memory = memory;
+			bool used_flag = is_use_mempool;
 			allocBigMemory(this->length + str.length + 1);
 			memcpy(memory, hstring_start, length);
 			hstring_start = memory;
-			freeHstring(old_memory);
+			freeHstring(old_memory, used_flag);
 		}
 		else {
 			//this+str 小于memory长度，只是存在内存浪费
@@ -240,7 +251,7 @@ const char& hstring::operator[](size_t index) const
 hstring& hstring::operator=(const hstring& str)
 {	
 	if (str.length + 1 > mem_size) {
-		freeHstring(memory);
+		freeHstring(memory,is_use_mempool);
 		allocBigMemory(str.mem_size);
 	}
 	memcpy(memory, str.hstring_start, str.length + 1);

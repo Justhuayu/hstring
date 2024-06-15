@@ -14,7 +14,6 @@ class hstring
 public:
 	hstring();
 	hstring(int num);
-	hstring(float num);
 	hstring(const char* str);
 	hstring(const hstring& str);
 	~hstring();
@@ -34,7 +33,7 @@ private:
 	void int2hstring(int num);
 	void cstr2hstring(const char* str);
 	void allocBigMemory(size_t size);//分配size大小的内存，用于mempool的block太小的情况
-	void freeHstring(void* ptr);
+	void freeHstring(void* ptr, bool _is_use_mempool);
 public:
 	size_t length;//hstring字符串的长度，不含结尾'\0'
 private:
