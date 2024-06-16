@@ -253,7 +253,6 @@ hstring& hstring::operator=(const hstring& str)
 		freeHstring(memory,is_use_mempool);
 		allocBigMemory(str.mem_size);
 	}
-	memset(memory, 0, mem_size);
 	memcpy(memory, str.hstring_start, str.length + 1);
 	hstring_start = memory;
 	length = str.length;
