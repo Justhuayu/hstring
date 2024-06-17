@@ -3,7 +3,9 @@
 mempool::mempool(size_t size, size_t block_size) {
 	if (block_size < sizeof(char*)) {
 		//TODO: 如何处理block_size过小的情况
-		std::cout << "ERROR: block size 应该大于" << sizeof(char*) << "字节" << std::endl;
+		std::cout<<"Waring：block size 应该大于" << sizeof(char*) << "字节" << std::endl;
+		std::cout<<"设置block size 为最小" << sizeof(char*) << "字节" << std::endl;
+		block_size = sizeof(char*);
 	}
 	mem_block_size = block_size;
 	mem_total_size = size;
@@ -44,9 +46,10 @@ char* mempool::allocMemory() {
 	}
 	mem_free_block--;
 	char* ptr = memory_free;
-	memory_free = *(char**)ptr;
-	memset(ptr, 0, sizeof(char*));
-	return ptr;
+	
+	memory_free = *(char**)ptr;//这里截个图，我怀疑是苹果的操作系统，这里的内核地址管理和windows不同，我需要去查一下，
+	memset(ptr, 0, sizeof(char*));//这里，*(char**)ptr，这么直接转换是不安全的，2级转1级的操作，但是你这里居然访问合法了，我去查查
+	return ptr;//先暂时这样，我查完回你
 }
 bool mempool::freeMemory(void* ptr) {
 	if (!ptr) {
